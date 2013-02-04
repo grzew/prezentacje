@@ -1,0 +1,179 @@
+\documentclass[xcolor=dvipsnames]{beamer} 
+\usepackage[polish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{polski}
+\usecolortheme[named=Brown]{structure} 
+\useoutertheme{infolines} 
+\usetheme[height=7mm]{Rochester}
+\author{Grzegorz Wieczorek} 
+\title[Systemy plików]{Systemy plików }
+\institute[StuKoLi]{
+  Szkoła Główna Gospodarstwa Wiejskiego\\
+  Wydział Zastosowań Informatyki i Matematyki\\
+  Informatyka\\[1ex]
+}
+\begin{document}
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+\begin{frame}
+  \tableofcontents
+\end{frame}
+\section{Przegląd systemów}
+\begin{frame}{ext2}
+Partycje o wielkości do 16 TB, pojedyncza pliki o wielkości 2 TB. Nazwy plików mogą mieć do 255 znaków długości.
+\end{frame}
+\begin{frame}{ext3}
+Partycje o wielkości do 32 TB. Jest kompatybilny wstecz. Mogą z niego kozystać programy napisane dla ext2.
+\end{frame}
+\begin{frame}{ext4}
+Następca ext3. Partycje o wielkości do 1 eksbibajta. Wielkość pojedynczego pliku do 16 tebibajtów. Włączenie niektórych opcji pozbawia kompatybilności z systemem ext3.
+\end{frame}
+\section{Działania na partycjach}
+\begin{frame}{Działania na partycjach}
+\begin{block}{Tworzenie systemu plików}
+mkfs -t typ /dev/sdX
+\newline
+mkfs.ext3 /dev/sdX
+\end{block}
+\pause
+\begin{block}{Montowanie}
+mount -t typ /dev/sdX /mnt/katalog
+\newline
+mount -t iso9660 -o ro /dev/cdrom /cdrom0
+\end{block}
+\pause
+\begin{block}{Label}
+e2label /dev/sdX nazwa
+\newline
+mount LABEL=nazwa /mnt/katalog
+\newline
+findfs LABEL=nazwa
+\end{block}
+\end{frame}
+\begin{frame}{Działania na partycjach}
+\begin{block}{Odmontowywanie}
+umount /dev/sdX
+\newline
+umount /mnt/katalog
+\end{block}
+\pause
+\begin{block}{Sprawdzanie systemu plików}
+e2fsck -f /dev/sdX
+\end{block}
+\pause
+\begin{block}{Zmiana rozmiaru - zwiększanie}
+resize2fs /dev/sdX
+\end{block}
+\pause
+\begin{block}{Zmiana rozmiaru - zmniejszanie}
+resize2fs /dev/sdX 10m
+\newline
+lvreduce -L 10 /dev/sdX
+\end{block}
+\end{frame}
+\begin{frame}{Automatyczne montowanie przy starcie systemu}
+Za automatyczne montowanie systemów plików odpowiada plik /etc/fstab
+\newline
+Struktura tego pliku wygląda następująco:
+\newline
+/dev/sdX	/	ext3	defaults 1 1
+\newline
+LABEL=home	/home	ext3	defaults 1 1
+\newline
+\pause
+\begin{block}{Montowanie wszystkiego z pliku fstab}
+mount -a
+\end{block}
+\end{frame}
+\section{ACL}
+\begin{frame}{ACL}
+\begin{block}{Wyświetlanie danych o pliku}
+getfacl plik
+\end{block}
+\pause
+\begin{block}{Czy partycja obsługuje acl}
+tune2fs -l /dev/sdX | grep acl
+\newline
+mount -o remount, acl /home
+\newline
+tune2fs /dev/sdX -o acl
+\end{block}
+\pause
+\begin{block}{Ustawianie ACL}
+setfacl -m u:user2:rw plik
+\end{block}
+\pause
+\begin{block}{Kasowanie ACL}
+setfacl -x u:user2:rw plik
+\end{block}
+\end{frame}
+\section{quota}
+\begin{frame}{quota}
+\begin{block}{Sprawdzenie czy jest pakiet}
+rpm -q quota
+\end{block}
+\pause
+\begin{block}{Montowanie z obsługą quoty}
+mount -o remount, acl, usrquota, grpquota /home
+\newline
+mount -v | grep home
+\end{block}
+\pause
+\begin{block}{Sprawdzenie quoty}
+quotacheck -cgmuv /home
+\end{block}
+\pause
+\begin{block}{Aktywacja quoty}
+quotaon -ugv /home
+\end{block}
+\end{frame}
+\begin{frame}{quota}
+\begin{block}{Ustawianie quoty dla usera}
+setquota -u user 30000 35000 0 0 /home
+\end{block}
+\pause
+\begin{block}{Raportowanie quoty (user)}
+repquota -a
+\end{block}
+\pause
+\begin{block}{Raportowanie quoty (grupa)}
+repquota -ag
+\end{block}
+\pause
+\begin{block}{Raportowanie quoty dla udziału}
+repquota -v /home
+\end{block}
+\pause
+\begin{block}{Wyłączanie quoty}
+quotaoff -ugv /home
+\end{block}
+\end{frame}
+\section{Swap}
+\begin{frame}{Swap}
+\begin{block}{Informacje o pamięci}
+cat /proc/meminfo
+\end{block}
+\pause
+\begin{block}{Tworzenie partycji swap}
+mkswap /dev/sdX
+\newline
+swapon /dev/sdX
+\end{block}
+\pause
+\begin{block}{Statystyki swap}
+free -m
+\newline
+swapon -s
+\newline
+cat /proc/swaps
+\newline
+vmstat
+\end{block}
+\end{frame}
+\begin{frame}{Koniec}
+\begin{center}
+Dziękuję za uwagę.
+\end{center}
+\end{frame}
+\end{document}
